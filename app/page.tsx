@@ -43,7 +43,7 @@ export default function Home() {
           </motion.div>
 
           <motion.div whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.98 }}>
-            <a href="/resume.pdf" className="inline-flex items-center gap-2 border border-gray-200 dark:border-gray-700 px-4 py-2 rounded-lg font-medium text-gray-700 dark:text-gray-200 hover:shadow-md transition">Resume</a>
+            <a href="/uploads/resume.pdf" download className="inline-flex items-center gap-2 border border-gray-200 dark:border-gray-700 px-4 py-2 rounded-lg font-medium text-gray-700 dark:text-gray-200 hover:shadow-md transition">Resume</a>
           </motion.div>
         </div>
         

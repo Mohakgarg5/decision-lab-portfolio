@@ -1,5 +1,6 @@
 "use client";
 import Link from "next/link";
+import { motion } from "framer-motion";
 
 interface CaseStudyCardProps {
   title: string;
@@ -11,17 +12,21 @@ interface CaseStudyCardProps {
 
 export default function CaseStudyCard({ title, excerpt, slug = "#", year, tags = [] }: CaseStudyCardProps) {
   return (
-    <article className="group border border-gray-100 dark:border-gray-800 rounded-2xl overflow-hidden">
+    <motion.article whileHover={{ translateY: -6 }} className="group rounded-2xl overflow-hidden shadow-sm hover:shadow-lg transition-shadow">
       <Link href={`/projects/${slug}`} className="block">
-        <div className="p-6 bg-white/60 dark:bg-slate-800/60 backdrop-blur">
-          <div className="flex items-start justify-between">
-            <h3 className="text-lg font-semibold">{title}</h3>
-            {year && <span className="text-sm text-muted-foreground">{year}</span>}
+        <div className="relative h-40 bg-gradient-to-tr from-indigo-600 to-emerald-400 overflow-hidden rounded-t-2xl">
+          <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(0,0,0,0.15),transparent)]" />
+          <div className="absolute bottom-3 left-4 text-white">
+            <h3 className="text-xl font-bold drop-shadow-sm">{title}</h3>
+            {year && <div className="text-sm opacity-90 mt-1">{year}</div>}
           </div>
-          <p className="mt-3 text-sm text-muted-foreground">{excerpt}</p>
+        </div>
+
+        <div className="p-6 bg-white dark:bg-slate-800 border border-t-0 dark:border-gray-700 rounded-b-2xl">
+          <p className="text-sm text-muted-foreground mb-4">{excerpt}</p>
 
           {tags.length > 0 && (
-            <div className="mt-4 flex flex-wrap gap-2">
+            <div className="mt-2 flex flex-wrap gap-2">
               {tags.map((t) => (
                 <span key={t} className="text-xs px-2 py-1 bg-gray-100 dark:bg-white/5 rounded-full text-muted-foreground">{t}</span>
               ))}
@@ -29,6 +34,6 @@ export default function CaseStudyCard({ title, excerpt, slug = "#", year, tags =
           )}
         </div>
       </Link>
-    </article>
+    </motion.article>
   );
 }

@@ -1,4 +1,6 @@
+"use client";
 import CaseStudyCard from "../../components/CaseStudyCard";
+import { motion } from "framer-motion";
 
 export default function ProjectsPage() {
   const projects = [
@@ -26,20 +28,21 @@ export default function ProjectsPage() {
   ];
 
   return (
-    <div className="py-8">
-      <div className="mb-8">
-        <h1 className="text-3xl font-extrabold">Case studies</h1>
-        <p className="text-muted-foreground">Selected product work and experiments — click a case study to read details.</p>
+    <div className="py-12">
+      <div className="mb-10">
+        <h1 className="text-4xl font-extrabold">Case studies</h1>
+        <p className="text-muted-foreground mt-2 max-w-2xl">Selected product work and experiments — click a case study to read details. Focused on measurable outcomes and fast iteration.</p>
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+      <motion.div className="grid grid-cols-1 sm:grid-cols-2 gap-6" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ staggerChildren: 0.05, duration: 0.5 }}>
         {projects.map((p) => (
-          <CaseStudyCard key={p.slug} title={p.title} excerpt={p.excerpt} slug={p.slug} year={p.year} tags={p.tags} />
+          <motion.div key={p.slug} whileHover={{ scale: 1.02 }}>
+            <CaseStudyCard title={p.title} excerpt={p.excerpt} slug={p.slug} year={p.year} tags={p.tags} />
+          </motion.div>
         ))}
-      </div>
+      </motion.div>
     </div>
   );
 
-
-  }
+}
 

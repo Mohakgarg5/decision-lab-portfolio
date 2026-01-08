@@ -1,44 +1,80 @@
 import { NextRequest, NextResponse } from "next/server";
-import multer from "multer";
-import { v4 as uuidv4 } from "uuid";
 import path from "path";
 import fs from "fs";
+import { v4 as uuidv4 } from "uuid";
 
 const uploadDir = path.join(process.cwd(), "public/uploads");
 
 if (!fs.existsSync(uploadDir)) fs.mkdirSync(uploadDir, { recursive: true });
-
-const storage = multer.diskStorage({
-  destination: uploadDir,
-  filename: (_req, file, cb) => cb(null, uuidv4() + path.extname(file.originalname)),
-});
-
-const upload = multer({ storage });
 
 // Handle file upload
 export const POST = async (req: NextRequest) => {
   // simple secret header check
   const headerSecret = req.headers.get("x-upload-secret") || "";
   const serverSecret = process.env.UPLOAD_SECRET || process.env.NEXT_PUBLIC_UPLOAD_PASS || "";
-  if (!serverSecret || headerSecret !== serverSecret) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  // If a server secret is configured, require it. If not configured (local dev), allow uploads.
+  if (serverSecret) {
+    if (headerSecret !== serverSecret) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+  } else {
+    // no server secret configured — allow uploads but log a warning for developers
+    // eslint-disable-next-line no-console
+    console.warn("Upload route: no UPLOAD_SECRET configured — allowing uploads without auth (dev only)");
   }
 
-  return new Promise((resolve) => {
-    upload.single("file")(req as unknown as Record<string, unknown>, {} as unknown as Record<string, unknown>, (err: unknown) => {
-      if (err instanceof Error) return resolve(NextResponse.json({ error: err.message }, { status: 500 }));
-      if (err) return resolve(NextResponse.json({ error: String(err) }, { status: 500 }));
-      resolve(NextResponse.json({ message: "File uploaded successfully!" }));
-    });
-  });
+  // Use the Fetch/Web FormData API available on NextRequest
+  try {
+    const formData = await req.formData();
+    const file = formData.get("file") as any;
+    if (!file) {
+      return NextResponse.json({ error: "No file provided" }, { status: 400 });
+    }
+
+    // `file` is a Web File-like object; read as ArrayBuffer
+    const arrayBuffer = await file.arrayBuffer();
+    const buffer = Buffer.from(arrayBuffer);
+
+    const original = file.name || file.filename || "upload";
+    const ext = path.extname(original) || "";
+    const destName = uuidv4() + ext;
+    const destPath = path.join(uploadDir, destName);
+
+    await fs.promises.writeFile(destPath, buffer);
+
+    return NextResponse.json({ message: "File uploaded successfully!", url: `/uploads/${destName}` });
+  } catch (e) {
+    return NextResponse.json({ error: String(e) }, { status: 500 });
+  }
 };
 
 // Handle file listing
-export const GET = async () => {
-  // For listing files, require the same secret header
-  // Note: Next.js Route Handlers expose headers via the request object; when used as a GET route in app router, callers should include the header.
-  // If the header is absent or incorrect, return 401.
-  // Because this GET handler may be called without a request object in some contexts, we guard by reading from process.env when necessary.
-  const files = fs.readdirSync(uploadDir).map((file) => `/uploads/${file}`);
-  return NextResponse.json({ files });
+export const GET = async (req: NextRequest) => {
+  const headerSecret = req.headers.get("x-upload-secret") || "";
+  const serverSecret = process.env.UPLOAD_SECRET || process.env.NEXT_PUBLIC_UPLOAD_PASS || "";
+  if (serverSecret) {
+    if (headerSecret !== serverSecret) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+  } else {
+    // no server secret configured — allow listing but warn in dev
+    // eslint-disable-next-line no-console
+    console.warn("Upload route GET: no UPLOAD_SECRET configured — returning uploads without auth (dev only)");
+  }
+
+  try {
+    const files = fs.readdirSync(uploadDir || "");
+    const items = files.map((file) => {
+      try {
+        const p = path.join(uploadDir, file);
+        const stat = fs.statSync(p);
+        return { name: file, url: `/uploads/${file}`, size: stat.size, mtime: stat.mtime.toISOString() };
+      } catch {
+        return { name: file, url: `/uploads/${file}` };
+      }
+    });
+    return NextResponse.json({ files: items });
+  } catch (e) {
+    return NextResponse.json({ error: String(e) }, { status: 500 });
+  }
 };

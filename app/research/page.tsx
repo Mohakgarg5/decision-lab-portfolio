@@ -8,7 +8,7 @@ import UploadGate from "../../components/UploadGate";
 export default function ResearchPage() {
   const [file, setFile] = useState<File | null>(null);
   const [message, setMessage] = useState("");
-  const [files, setFiles] = useState<string[]>([]);
+  const [files, setFiles] = useState<Array<{ name: string; url: string }>>([]);
 
   // Fetch uploaded files (do not call setState synchronously in effect body)
   useEffect(() => {
@@ -123,9 +123,9 @@ export default function ResearchPage() {
             <p className="text-muted-foreground">No files uploaded yet.</p>
           ) : (
             <ul className="list-disc list-inside space-y-2">
-              {files.map((filePath, idx) => (
+              {files.map((f, idx) => (
                 <li key={idx}>
-                  <a href={filePath} target="_blank" rel="noreferrer" className="text-indigo-600 hover:underline">{filePath.split("/").pop()}</a>
+                  <a href={f.url} target="_blank" rel="noreferrer" className="text-indigo-600 hover:underline">{f.name || f.url.split("/").pop()}</a>
                 </li>
               ))}
             </ul>

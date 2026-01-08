@@ -23,7 +23,7 @@ export default function Sidebar() {
           </nav>
 
           <div className="mt-5 flex items-center gap-2">
-            <a href="/resume.pdf" className="px-3 py-2 bg-indigo-600 text-white rounded text-sm">Download resume</a>
+            <a href="/uploads/resume.pdf" download className="px-3 py-2 bg-indigo-600 text-white rounded text-sm">Download resume</a>
             <div className="ml-2">
               <ThemeToggle />
             </div>
